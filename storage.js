@@ -46,7 +46,8 @@
       completedCount: 0,
       answeredCount: 0,
       correctCount: 0,
-      seenPointsInStreak: []
+      seenPointsInStreak: [],
+      recentTenQuestionResults: []
     };
   }
 
@@ -277,6 +278,21 @@
       const perfect = correctCount === 10;
 
       updatePerfectStreak(genreRecord, perfect);
+
+      // 更新前の保存データには、この項目がないため補います。
+      if (!Array.isArray(genreRecord.recentTenQuestionResults)) {
+        genreRecord.recentTenQuestionResults = [];
+      }
+
+      // 古い順に保存し、直近10回だけを保持します。
+      genreRecord.recentTenQuestionResults.push({
+        completedAt: new Date().toISOString(),
+        correctCount,
+        answeredCount: 10
+      });
+
+      genreRecord.recentTenQuestionResults =
+        genreRecord.recentTenQuestionResults.slice(-10);
 
       if (perfect) {
         const points = new Set(genreRecord.seenPointsInStreak);
