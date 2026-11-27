@@ -58,14 +58,38 @@
       border-radius: 14px;
     }
 
+    /* ホーム全体を囲まず、モードごとにカードを分けます。 */
+    #home {
+      margin-top: 24px;
+    }
+
     .mode-card {
-      margin-top: 18px;
-      padding-top: 18px;
-      border-top: 1px solid #d4dce2;
+      margin-top: 22px;
+      padding: 20px;
+      background: #fff;
+      border: 2px solid #b9c8c2;
+      border-top: 6px solid #185c45;
+      border-radius: 14px;
+      box-shadow: 0 3px 8px rgb(24 35 45 / 5%);
     }
 
     .mode-card h3 {
-      margin: 0 0 8px;
+      margin: 0 0 12px;
+      font-size: 1.2rem;
+    }
+
+    .mode-card > p {
+      margin: 10px 0 16px;
+    }
+
+    .mode-card.challenge-card {
+      border-color: #c7b47d;
+      border-top-color: #806117;
+    }
+
+    .mode-card.achievement-card {
+      border-color: #bac6d5;
+      border-top-color: #466384;
     }
 
     button,
@@ -97,6 +121,19 @@
       border: 1px solid #a9b6bf;
       background: #fff;
       color: #263b49;
+    }
+
+    .challenge-card > button {
+      background: #725510;
+    }
+
+    .challenge-card > button:disabled {
+      background: #dce2e6;
+      color: #59636b;
+    }
+
+    .achievement-card > button {
+      background: #466384;
     }
 
     select {
@@ -177,11 +214,62 @@
       font-weight: bold;
     }
 
+    #result-message p {
+      margin: 10px 0;
+    }
+
+    .best-record {
+      padding: 12px;
+      border: 1px solid #b7c5d5;
+      border-radius: 8px;
+      background: #edf2f8;
+      color: #263b49;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .new-record {
+      display: inline-block;
+      padding: 8px 14px;
+      border: 2px solid #987014;
+      border-radius: 8px;
+      background: #fff3c4;
+      color: #624600;
+      font-size: 1.15rem;
+      font-weight: bold;
+    }
+
+    .save-success {
+      color: #285640;
+      font-size: 0.9rem;
+    }
+
+    .save-warning {
+      padding: 12px;
+      border: 1px solid #9b6816;
+      border-radius: 8px;
+      background: #fff5df;
+      color: #70470b;
+      font-size: 0.9rem;
+    }
+
     .review {
       margin: 20px 0;
       padding: 16px;
-      border: 1px solid #d4dce2;
+      border: 2px solid #d4dce2;
       border-radius: 10px;
+    }
+
+    .review-correct {
+      border-color: #83b69a;
+      border-left: 6px solid #287a4d;
+      background: #edf8f0;
+    }
+
+    .review-incorrect {
+      border-color: #d9a0a0;
+      border-left: 6px solid #ad3737;
+      background: #fff0f0;
     }
 
     .review h3 {
@@ -233,10 +321,12 @@
 
     <p id="error" class="error" role="alert" hidden></p>
 
-    <section id="home" class="card" aria-labelledby="home-title">
+    <section id="home" aria-labelledby="home-title">
       <h2 id="home-title" tabindex="-1">学習メニュー</h2>
 
-      <p id="data-summary" class="status">問題データを準備しています。</p>
+      <p id="data-summary" class="status">
+        問題データを準備しています。
+      </p>
 
       <p class="note">
         ダミー問題には同じ内容の繰り返しがあります。
@@ -244,35 +334,39 @@
       </p>
 
       <div class="mode-card">
-        <h3>ランダム10問</h3>
+        <h3>全ジャンル10問チャレンジ！！</h3>
+
         <p>
           全ジャンルから10問出題します。
           正誤と解説は、10問終了後にまとめて表示します。
         </p>
+
         <button id="start-random" type="button">
-          ランダム10問を始める
+          全ジャンル10問チャレンジ！！
         </button>
       </div>
 
       <div class="mode-card">
-        <h3>ジャンル別10問</h3>
+        <h3>ジャンル別10問チャレンジ！！</h3>
+
         <p>
           選んだジャンルから10問出題します。
           正誤と解説は、10問終了後にまとめて表示します。
         </p>
 
-        <label for="genre-select">ジャンル</label>
+        <label for="genre-select">挑戦するジャンル</label>
         <select id="genre-select"></select>
 
         <p id="genre-note" class="note"></p>
 
         <button id="start-genre" type="button">
-          ジャンル別10問を始める
+          ジャンル別10問チャレンジ！！
         </button>
       </div>
 
-      <div class="mode-card">
-        <h3>100問チャレンジ</h3>
+      <div class="mode-card challenge-card">
+        <h3>100問連続チャレンジ！！</h3>
+
         <p>
           100問連続正解を目指します。
           不正解になった時点で終了し、その問題の解説を表示します。
@@ -281,26 +375,54 @@
         <p id="challenge-note" class="note"></p>
 
         <button id="start-challenge" type="button">
-          100問チャレンジを始める
+          100問連続チャレンジ！！
         </button>
       </div>
 
-      <div class="mode-card">
+      <div class="mode-card achievement-card">
         <h3>実績確認</h3>
-        <p class="note">成績保存・バッジ機能は、今後追加します。</p>
 
-        <button id="open-achievements" class="secondary" type="button">
+        <p>
+          実績の一覧表示は準備中です。
+          100問連続チャレンジの自己ベストは、各回の結果画面で確認できます。
+        </p>
+
+        <button id="open-achievements" type="button">
           実績画面を見る（準備中）
         </button>
       </div>
 
-      <p class="note">
-        現在は成績・回答途中の保存に対応していません。
-        再読み込みやページを閉じる操作で、この回の回答は失われます。
-      </p>
+      <div class="card">
+        <h3>成績の保存について</h3>
+
+        <p class="note">
+          完了した回の成績は、この端末のこのブラウザーに保存します。
+          成績をサーバーへ送信する機能はありません。
+        </p>
+
+        <p class="note">
+          回答途中の保存には対応していません。
+          再読み込みや「この回をやめる」で、途中の回答は破棄されます。
+        </p>
+
+        <p class="note">
+          サイトデータの削除やシークレットモードの終了などで、
+          保存した成績が消える場合があります。
+          バックアップ・復元機能は今後追加します。
+        </p>
+
+        <p class="note">
+          ダミー版のテスト成績は、本番の成績とは分けて扱います。
+        </p>
+      </div>
     </section>
 
-    <section id="quiz" class="card" aria-labelledby="mode-title" hidden>
+    <section
+      id="quiz"
+      class="card"
+      aria-labelledby="mode-title"
+      hidden
+    >
       <h2 id="mode-title"></h2>
 
       <p id="progress" tabindex="-1" aria-live="polite"></p>
@@ -321,11 +443,16 @@
       </button>
     </section>
 
-    <section id="result" class="card" aria-labelledby="result-title" hidden>
+    <section
+      id="result"
+      class="card"
+      aria-labelledby="result-title"
+      hidden
+    >
       <h2 id="result-title" tabindex="-1">結果</h2>
 
       <p id="score"></p>
-      <p id="result-message" class="note"></p>
+      <div id="result-message"></div>
 
       <div id="reviews"></div>
 
@@ -342,20 +469,24 @@
     >
       <h2 id="achievements-title" tabindex="-1">実績確認</h2>
 
-      <p class="status">この機能は準備中です</p>
+      <p class="status">実績の一覧表示は準備中です</p>
 
-      <p>今後、次の情報を確認できるようにします。</p>
+      <p>
+        完了した回の成績を保存する処理を追加しました。
+        この画面への一覧表示は、次の段階で追加します。
+      </p>
 
       <ul>
         <li>バッジの取得状況と次段階までの進捗</li>
         <li>連続満点記録と自己ベスト</li>
-        <li>100問チャレンジの自己ベスト</li>
+        <li>100問連続チャレンジの自己ベスト</li>
         <li>連続学習日数</li>
         <li>ジャンル別の正解率・回答数</li>
       </ul>
 
       <p class="note">
-        現在の動作確認版では、成績は保存されません。
+        100問連続チャレンジの自己ベストは、
+        各回の結果画面で確認できます。
       </p>
 
       <button type="button" data-home>
@@ -364,8 +495,9 @@
     </section>
   </main>
 
-  <!-- 問題データを先に読み込み、その後にアプリを起動します。 -->
-  <script src="./questions.js" defer></script>
-  <script src="./app.js" defer></script>
+  <!-- データと保存処理を読み込んでから、アプリを起動します。 -->
+  <script src="./questions.js?v=2" defer></script>
+  <script src="./storage.js?v=2" defer></script>
+  <script src="./app.js?v=2" defer></script>
 </body>
 </html>
