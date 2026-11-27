@@ -6,8 +6,16 @@
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#185c45">
   <title>IT基礎クイズ｜動作確認版</title>
+
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
     body {
       margin: 0;
       background: #f3f6f8;
@@ -16,36 +24,106 @@
       line-height: 1.7;
       overflow-wrap: anywhere;
     }
-    main { max-width: 720px; margin: 0 auto; padding: 20px 16px 48px; }
-    h1 { font-size: 1.6rem; margin: 0 0 8px; }
-    h2 { font-size: 1.25rem; }
-    .note { color: #4c5965; font-size: 0.9rem; }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.6rem;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 1.25rem;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+    }
+
+    .note {
+      color: #4c5965;
+      font-size: 0.9rem;
+    }
+
     .card {
       margin-top: 20px;
       padding: 20px;
-      background: white;
+      background: #fff;
       border: 1px solid #d4dce2;
       border-radius: 14px;
     }
-    button {
+
+    .mode-card {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid #d4dce2;
+    }
+
+    .mode-card h3 {
+      margin: 0 0 8px;
+    }
+
+    button,
+    select {
       width: 100%;
       min-height: 52px;
       padding: 12px 16px;
-      border: 0;
       border-radius: 10px;
-      background: #185c45;
-      color: white;
       font: inherit;
+    }
+
+    button {
+      border: 0;
+      background: #185c45;
+      color: #fff;
       font-weight: bold;
       cursor: pointer;
       touch-action: manipulation;
     }
-    button:disabled { background: #dce2e6; color: #59636b; cursor: default; }
-    button:focus-visible, input:focus-visible {
+
+    button:disabled {
+      background: #dce2e6;
+      color: #59636b;
+      cursor: default;
+    }
+
+    .secondary {
+      margin-top: 16px;
+      border: 1px solid #a9b6bf;
+      background: #fff;
+      color: #263b49;
+    }
+
+    select {
+      margin: 8px 0 12px;
+      border: 1px solid #a9b6bf;
+      background: #fff;
+      color: #18232d;
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible {
       outline: 3px solid #176bca;
       outline-offset: 4px;
     }
-    fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+
+    [tabindex="-1"]:focus {
+      outline: none;
+    }
+
+    fieldset {
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
     legend {
       width: 100%;
       margin-bottom: 20px;
@@ -54,6 +132,7 @@
       font-weight: bold;
       white-space: pre-wrap;
     }
+
     .option {
       display: flex;
       align-items: flex-start;
@@ -65,278 +144,228 @@
       border-radius: 10px;
       cursor: pointer;
     }
-    .option:has(input:checked) { border-color: #185c45; background: #edf7f1; }
-    .option input { flex-shrink: 0; margin-top: 6px; }
-    .option span { white-space: pre-wrap; }
-    #confirm { margin-top: 16px; }
-    #score { font-size: 1.8rem; font-weight: bold; }
+
+    .option:has(input:checked) {
+      border-color: #185c45;
+      background: #edf7f1;
+    }
+
+    .option input {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      margin: 4px 0 0;
+      accent-color: #185c45;
+    }
+
+    .option span {
+      min-width: 0;
+      white-space: pre-wrap;
+    }
+
+    #confirm {
+      margin-top: 16px;
+    }
+
+    #score {
+      margin: 16px 0;
+      font-size: clamp(1.5rem, 6vw, 2rem);
+      font-weight: bold;
+    }
+
+    #progress {
+      font-weight: bold;
+    }
+
     .review {
       margin: 20px 0;
       padding: 16px;
       border: 1px solid #d4dce2;
       border-radius: 10px;
     }
-    .review h3 { margin-top: 0; font-size: 1rem; white-space: pre-wrap; }
-    .review p { margin: 8px 0; white-space: pre-wrap; }
+
+    .review h3 {
+      margin-top: 0;
+      font-size: 1rem;
+      white-space: pre-wrap;
+    }
+
+    .review p {
+      margin: 8px 0;
+      white-space: pre-wrap;
+    }
+
+    .error {
+      margin-top: 20px;
+      padding: 16px;
+      border: 2px solid #a12626;
+      border-radius: 10px;
+      background: #fff0f0;
+      color: #761a1a;
+    }
+
+    .status {
+      display: inline-block;
+      margin: 8px 0;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: #eaf0f5;
+      color: #334b5c;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
+
 <body>
   <main>
-    <h1>IT基礎クイズ</h1>
-    <p class="note">
-      動作確認版：ダミー問題10問のみ。本番の問題データは含まれていません。
-    </p>
-
-    <section id="home" class="card">
-      <h2>まずは操作を確認</h2>
-      <p>4つの選択肢から1つ選び、ボタンで回答を確定します。</p>
-      <p>正誤と解説は、10問終了後にまとめて表示します。</p>
-      <button id="start" type="button">ランダム10問（テスト）</button>
+    <header>
+      <h1>IT基礎クイズ</h1>
       <p class="note">
-        この版には成績の保存機能はありません。
-        再読み込みすると、回答途中の内容も消えます。
+        動作確認版です。本番の問題データは含まれていません。
+      </p>
+    </header>
+
+    <noscript>
+      <p class="error">
+        このアプリを利用するには、ブラウザーのJavaScriptを有効にしてください。
+      </p>
+    </noscript>
+
+    <p id="error" class="error" role="alert" hidden></p>
+
+    <section id="home" class="card" aria-labelledby="home-title">
+      <h2 id="home-title" tabindex="-1">学習メニュー</h2>
+
+      <p id="data-summary" class="status">問題データを準備しています。</p>
+
+      <p class="note">
+        ダミー問題には同じ内容の繰り返しがあります。
+        出題モードや操作を確認するためのデータです。
+      </p>
+
+      <div class="mode-card">
+        <h3>ランダム10問</h3>
+        <p>
+          全ジャンルから10問出題します。
+          正誤と解説は、10問終了後にまとめて表示します。
+        </p>
+        <button id="start-random" type="button">
+          ランダム10問を始める
+        </button>
+      </div>
+
+      <div class="mode-card">
+        <h3>ジャンル別10問</h3>
+        <p>
+          選んだジャンルから10問出題します。
+          正誤と解説は、10問終了後にまとめて表示します。
+        </p>
+
+        <label for="genre-select">ジャンル</label>
+        <select id="genre-select"></select>
+
+        <p id="genre-note" class="note"></p>
+
+        <button id="start-genre" type="button">
+          ジャンル別10問を始める
+        </button>
+      </div>
+
+      <div class="mode-card">
+        <h3>100問チャレンジ</h3>
+        <p>
+          100問連続正解を目指します。
+          不正解になった時点で終了し、その問題の解説を表示します。
+        </p>
+
+        <p id="challenge-note" class="note"></p>
+
+        <button id="start-challenge" type="button">
+          100問チャレンジを始める
+        </button>
+      </div>
+
+      <div class="mode-card">
+        <h3>実績確認</h3>
+        <p class="note">成績保存・バッジ機能は、今後追加します。</p>
+
+        <button id="open-achievements" class="secondary" type="button">
+          実績画面を見る（準備中）
+        </button>
+      </div>
+
+      <p class="note">
+        現在は成績・回答途中の保存に対応していません。
+        再読み込みやページを閉じる操作で、この回の回答は失われます。
       </p>
     </section>
 
-    <section id="quiz" class="card" hidden>
-      <p id="progress" aria-live="polite"></p>
+    <section id="quiz" class="card" aria-labelledby="mode-title" hidden>
+      <h2 id="mode-title"></h2>
+
+      <p id="progress" tabindex="-1" aria-live="polite"></p>
+
       <form id="answer-form">
         <fieldset>
           <legend id="prompt"></legend>
           <div id="options"></div>
         </fieldset>
-        <button id="confirm" type="submit" disabled>次へ</button>
+
+        <button id="confirm" type="submit" disabled>
+          次へ
+        </button>
       </form>
+
+      <button id="quit" class="secondary" type="button">
+        この回をやめる
+      </button>
     </section>
 
-    <section id="result" class="card" hidden>
+    <section id="result" class="card" aria-labelledby="result-title" hidden>
       <h2 id="result-title" tabindex="-1">結果</h2>
+
       <p id="score"></p>
-      <p>各問題の回答と解説</p>
+      <p id="result-message" class="note"></p>
+
       <div id="reviews"></div>
-      <button id="back-home" type="button">ホームへ戻る</button>
+
+      <button type="button" data-home>
+        ホームへ戻る
+      </button>
+    </section>
+
+    <section
+      id="achievements"
+      class="card"
+      aria-labelledby="achievements-title"
+      hidden
+    >
+      <h2 id="achievements-title" tabindex="-1">実績確認</h2>
+
+      <p class="status">この機能は準備中です</p>
+
+      <p>今後、次の情報を確認できるようにします。</p>
+
+      <ul>
+        <li>バッジの取得状況と次段階までの進捗</li>
+        <li>連続満点記録と自己ベスト</li>
+        <li>100問チャレンジの自己ベスト</li>
+        <li>連続学習日数</li>
+        <li>ジャンル別の正解率・回答数</li>
+      </ul>
+
+      <p class="note">
+        現在の動作確認版では、成績は保存されません。
+      </p>
+
+      <button type="button" data-home>
+        ホームへ戻る
+      </button>
     </section>
   </main>
 
-  <script>
-    "use strict";
-
-    // このデータは操作確認用です。本番の281問とは別物です。
-    // pointは内部管理用で、画面には表示しません。
-    const questionData = {
-      schemaVersion: 1,
-      questions: [
-        {
-          id: "dummy-001", genre: "テスト", point: "D01",
-          prompt: "【ダミー】CPUの主な役割はどれですか？",
-          options: ["演算や制御を行う", "紙に印刷する", "音を出す", "画面を照らす"],
-          answer: "A",
-          explanation: "CPUは、命令に従って演算や制御を行います。"
-        },
-        {
-          id: "dummy-002", genre: "テスト", point: "D02",
-          prompt: "【ダミー】Webページを閲覧するソフトウェアはどれですか？",
-          options: ["電卓", "ブラウザー", "圧縮ソフト", "表計算ソフト"],
-          answer: "B",
-          explanation: "Chromeなどのブラウザーを使ってWebページを閲覧します。"
-        },
-        {
-          id: "dummy-003", genre: "テスト", point: "D03",
-          prompt: "【ダミー】ファイルのバックアップの目的はどれですか？",
-          options: ["画面を明るくする", "通信を止める", "消失や故障に備える", "文字を大きくする"],
-          answer: "C",
-          explanation: "元のデータが失われても復元できるよう、別の場所にコピーを保管します。"
-        },
-        {
-          id: "dummy-004", genre: "テスト", point: "D04",
-          prompt: "【ダミー】不審なメールを受け取ったときの対応として適切なのはどれですか？",
-          options: ["添付ファイルをすぐ開く", "パスワードを返信する", "全員へ転送する", "リンクを開かず担当者へ相談する"],
-          answer: "D",
-          explanation: "不審なリンクや添付ファイルは開かず、社内のルールに従って報告・相談します。"
-        },
-        {
-          id: "dummy-005", genre: "テスト", point: "D05",
-          prompt: "【ダミー】RAMの説明として適切なのはどれですか？",
-          options: ["処理中のデータなどを一時的に置く", "用紙を保管する", "通信ケーブルの種類である", "印刷の色を表す"],
-          answer: "A",
-          explanation: "RAMは、実行中のプログラムや処理中のデータなどを一時的に保持します。"
-        },
-        {
-          id: "dummy-006", genre: "テスト", point: "D06",
-          prompt: "【ダミー】OSの役割として適切なのはどれですか？",
-          options: ["机の高さを調整する", "機器の資源を管理しアプリの動作を支える", "用紙を裁断する", "回線契約を販売する"],
-          answer: "B",
-          explanation: "OSは、メモリーや周辺機器などを管理し、アプリが動くための基本機能を提供します。"
-        },
-        {
-          id: "dummy-007", genre: "テスト", point: "D07",
-          prompt: "【ダミー】URLは何を示すものですか？",
-          options: ["画面の明るさ", "電池の残量", "Web上の情報などの場所", "キーボードの重さ"],
-          answer: "C",
-          explanation: "URLは、Webページなどの資源の場所やアクセス方法を表します。"
-        },
-        {
-          id: "dummy-008", genre: "テスト", point: "D08",
-          prompt: "【ダミー】ソフトウェアを更新する理由として適切なのはどれですか？",
-          options: ["必ず保存容量をゼロにするため", "パスワードを公開するため", "画面を物理的に大きくするため", "不具合や脆弱性を修正するため"],
-          answer: "D",
-          explanation: "更新には、不具合や脆弱性の修正、機能の改善などが含まれます。"
-        },
-        {
-          id: "dummy-009", genre: "テスト", point: "D09",
-          prompt: "【ダミー・文字列表示確認】先頭が「=」の選択肢はどれですか？",
-          options: ["=SUM(A1:A3)", "2026/01/02", "#N/A", "00123"],
-          answer: "A",
-          explanation: "ここでは、数式・日付・エラー値・数値のように見える内容も、文字列のまま表示します。"
-        },
-        {
-          id: "dummy-010", genre: "テスト", point: "D10",
-          prompt: "【ダミー】パスワードの管理として適切なのはどれですか？",
-          options: ["すべてのサービスで同じものを使う", "サービスごとに異なるものを使う", "公開プロフィールに記載する", "メールで全員に配る"],
-          answer: "B",
-          explanation: "使い回しを避けることで、あるサービスからの漏えいが他へ波及するリスクを下げられます。"
-        }
-      ]
-    };
-
-    const letters = ["A", "B", "C", "D"];
-    const home = document.getElementById("home");
-    const quiz = document.getElementById("quiz");
-    const result = document.getElementById("result");
-    const form = document.getElementById("answer-form");
-    const options = document.getElementById("options");
-    const confirmButton = document.getElementById("confirm");
-
-    let questions = [];
-    let answers = [];
-    let currentIndex = 0;
-
-    function shuffled(items) {
-      const copy = [...items];
-      for (let i = copy.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [copy[i], copy[j]] = [copy[j], copy[i]];
-      }
-      return copy;
-    }
-
-    function showScreen(target) {
-      for (const screen of [home, quiz, result]) {
-        screen.hidden = screen !== target;
-      }
-      window.scrollTo(0, 0);
-    }
-
-    function renderQuestion() {
-      const question = questions[currentIndex];
-
-      document.getElementById("progress").textContent =
-        `${currentIndex + 1} / ${questions.length} 問`;
-      document.getElementById("prompt").textContent = question.prompt;
-
-      options.replaceChildren();
-      confirmButton.disabled = true;
-      confirmButton.textContent =
-        currentIndex === questions.length - 1 ? "結果を見る" : "次へ";
-
-      question.options.forEach((text, index) => {
-        const label = document.createElement("label");
-        label.className = "option";
-
-        const radio = document.createElement("input");
-        radio.type = "radio";
-        radio.name = "answer";
-        radio.value = letters[index];
-        radio.required = true;
-        radio.addEventListener("change", () => {
-          confirmButton.disabled = false;
-        });
-
-        const caption = document.createElement("span");
-        caption.textContent = `${letters[index]}. ${text}`;
-
-        label.append(radio, caption);
-        options.append(label);
-      });
-    }
-
-    function answerText(question, letter) {
-      return `${letter}. ${question.options[letters.indexOf(letter)]}`;
-    }
-
-    function addParagraph(parent, text) {
-      const paragraph = document.createElement("p");
-      paragraph.textContent = text;
-      parent.append(paragraph);
-    }
-
-    function renderResult() {
-      const correctCount = questions.filter(
-        (question, index) => question.answer === answers[index]
-      ).length;
-
-      document.getElementById("score").textContent =
-        correctCount === 10 ? "10 / 10 PERFECT!" : `${correctCount} / 10`;
-
-      const reviews = document.getElementById("reviews");
-      reviews.replaceChildren();
-
-      questions.forEach((question, index) => {
-        const correct = question.answer === answers[index];
-        const article = document.createElement("article");
-        article.className = "review";
-
-        const heading = document.createElement("h3");
-        heading.textContent =
-          `${index + 1}. ${correct ? "正解" : "不正解"}\n${question.prompt}`;
-        article.append(heading);
-
-        addParagraph(article, `自分の回答：${answerText(question, answers[index])}`);
-        addParagraph(article, `正解：${answerText(question, question.answer)}`);
-        addParagraph(article, `解説：${question.explanation}`);
-
-        reviews.append(article);
-      });
-
-      showScreen(result);
-      document.getElementById("result-title").focus();
-    }
-
-    document.getElementById("start").addEventListener("click", () => {
-      questions = shuffled(questionData.questions).slice(0, 10);
-      answers = [];
-      currentIndex = 0;
-      renderQuestion();
-      showScreen(quiz);
-      document.getElementById("progress").setAttribute("tabindex", "-1");
-      document.getElementById("progress").focus();
-    });
-
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-
-      const selected = form.querySelector('input[name="answer"]:checked');
-      if (!selected) return;
-
-      answers.push(selected.value);
-      currentIndex++;
-
-      if (currentIndex === questions.length) {
-        renderResult();
-      } else {
-        renderQuestion();
-        window.scrollTo(0, 0);
-        document.getElementById("progress").focus();
-      }
-    });
-
-    document.getElementById("back-home").addEventListener("click", () => {
-      questions = [];
-      answers = [];
-      currentIndex = 0;
-      showScreen(home);
-      document.getElementById("start").focus();
-    });
-  </script>
+  <!-- 問題データを先に読み込み、その後にアプリを起動します。 -->
+  <script src="./questions.js" defer></script>
+  <script src="./app.js" defer></script>
 </body>
 </html>
