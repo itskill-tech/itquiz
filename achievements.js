@@ -452,7 +452,9 @@
         condition: (value) => `このジャンルで${value}回連続満点`
       });
 
-      const rate = record.answeredCount > 0
+      add(block, "h4", "正解率");
+
+      const cumulativeRate = record.answeredCount > 0
         ? `${(
             record.correctCount / record.answeredCount * 100
           ).toFixed(1)}%`
@@ -461,9 +463,57 @@
       add(
         block,
         "p",
-        `正解率 ${rate} ／ 回答数 ${record.answeredCount}問 ／ ` +
-        `正解数 ${record.correctCount}問`
+        `累計：${cumulativeRate}` +
+        `（${record.correctCount} / ${record.answeredCount}問正解）`
       );
+
+      // 更新前の成績には履歴がないため、空の履歴として扱います。
+      const history = Array.isArray(record.recentTenQuestionResults)
+        ? record.recentTenQuestionResults.filter(
+            (item) =>
+              item &&
+              Number.isInteger(item.correctCount) &&
+              item.correctCount >= 0 &&
+              item.correctCount <= 10 &&
+              item.answeredCount === 10
+          )
+        : [];
+
+      for (const limit of [3, 10]) {
+        const recent = history.slice(-limit);
+
+        if (recent.length === 0) {
+          add(
+            block,
+            "p",
+            `直近${limit}回：記録なし`
+          );
+          continue;
+        }
+
+        const recentCorrect = recent.reduce(
+          (sum, item) => sum + item.correctCount,
+          0
+        );
+
+        const recentAnswered = recent.length * 10;
+
+        const recentRate = (
+          recentCorrect / recentAnswered * 100
+        ).toFixed(1);
+
+        const label = recent.length < limit
+          ? `直近${limit}回枠`
+          : `直近${limit}回`;
+
+        add(
+          block,
+          "p",
+          `${label}：${recentRate}%` +
+          `（${recentCorrect} / ${recentAnswered}問正解・` +
+          `${recent.length}回分）`
+        );
+      }
     }
 
     add(
