@@ -3,8 +3,22 @@
 (() => {
   const letters = ["A", "B", "C", "D"];
   const data = window.ITQUIZ_DATA;
+  const storage = window.ITQUIZ_STORAGE;
+  const get = (id) => document.getElementById(id);
 
-  // 同じIDの問題を、同じ回に重複して出題しないための処理。
+  const home = get("home");
+  const quiz = get("quiz");
+  const result = get("result");
+  const achievements = get("achievements");
+  const errorBox = get("error");
+  const form = get("answer-form");
+  const optionsBox = get("options");
+  const confirmButton = get("confirm");
+  const genreSelect = get("genre-select");
+
+  let pool = [];
+  let session = null;
+
   function uniqueQuestions(items) {
     const seen = new Set();
 
@@ -26,20 +40,20 @@
     return copy;
   }
 
-  const get = (id) => document.getElementById(id);
+  function makeSessionId() {
+    if (
+      window.crypto &&
+      typeof window.crypto.randomUUID === "function"
+    ) {
+      return window.crypto.randomUUID();
+    }
 
-  const home = get("home");
-  const quiz = get("quiz");
-  const result = get("result");
-  const achievements = get("achievements");
-  const errorBox = get("error");
-  const form = get("answer-form");
-  const optionsBox = get("options");
-  const confirmButton = get("confirm");
-  const genreSelect = get("genre-select");
-
-  let pool = [];
-  let session = null;
+    return (
+      Date.now().toString(36) +
+      "-" +
+      Math.random().toString(36).slice(2)
+    );
+  }
 
   function showError(message) {
     errorBox.textContent = message;
@@ -70,6 +84,18 @@
     focusHeading("home-title");
   }
 
+  function modeTitle() {
+    if (session.mode === "challenge") {
+      return "100問連続チャレンジ！！";
+    }
+
+    if (session.mode === "genre") {
+      return `ジャンル別10問チャレンジ！！：${session.genre}`;
+    }
+
+    return "全ジャンル10問チャレンジ！！";
+  }
+
   function startSession(mode, genre = "") {
     clearError();
 
@@ -88,28 +114,19 @@
     }
 
     session = {
+      id: makeSessionId(),
       mode,
       genre,
       questions: shuffled(candidates).slice(0, requiredCount),
       answers: [],
       index: 0,
-      correctCount: 0
+      correctCount: 0,
+      finished: false,
+      saveResult: null
     };
 
     showScreen(quiz);
     renderQuestion();
-  }
-
-  function modeTitle() {
-    if (session.mode === "challenge") {
-      return "100問チャレンジ";
-    }
-
-    if (session.mode === "genre") {
-      return `ジャンル別10問：${session.genre}`;
-    }
-
-    return "ランダム10問";
   }
 
   function renderQuestion() {
@@ -147,8 +164,6 @@
       });
 
       const caption = document.createElement("span");
-
-      // 数式・日付などに見える文字も、そのまま文字として表示。
       caption.textContent = `${letters[index]}. ${text}`;
 
       label.append(radio, caption);
@@ -164,21 +179,32 @@
     return `${letter}. ${question.options[index]}`;
   }
 
-  function addParagraph(parent, text) {
+  function addParagraph(parent, text, className = "") {
     const paragraph = document.createElement("p");
     paragraph.textContent = text;
+
+    if (className) {
+      paragraph.className = className;
+    }
+
     parent.append(paragraph);
+    return paragraph;
   }
 
   function makeReview(question, chosen, number) {
-    const article = document.createElement("article");
-    article.className = "review";
-
     const correct = chosen === question.answer;
+    const article = document.createElement("article");
+
+    // 背景色は、次のindex.html更新で適用します。
+    article.className = correct
+      ? "review review-correct"
+      : "review review-incorrect";
+
     const heading = document.createElement("h3");
 
     heading.textContent =
-      `${number}. ${correct ? "正解" : "不正解"}\n${question.prompt}`;
+      `${number}. ${correct ? "○ 正解" : "× 不正解"}\n` +
+      question.prompt;
 
     article.append(heading);
 
@@ -197,15 +223,55 @@
     return article;
   }
 
+  function saveSession() {
+    if (!storage) {
+      return {
+        ok: false,
+        message:
+          "保存機能が未接続のため、この回の成績は保存されていません。"
+      };
+    }
+
+    try {
+      return storage.recordCompletedSession(session);
+    } catch (error) {
+      console.warn("ITQuiz: session save failed", error);
+
+      return {
+        ok: false,
+        message:
+          "成績保存中にエラーが発生しました。" +
+          "この回の成績は保存できていない可能性があります。"
+      };
+    }
+  }
+
+  function showSaveStatus(saveResult) {
+    const message = get("result-message");
+    message.replaceChildren();
+
+    addParagraph(message, modeTitle());
+
+    addParagraph(
+      message,
+      saveResult.ok
+        ? "成績をこのブラウザーに保存しました。"
+        : saveResult.message,
+      saveResult.ok ? "save-success" : "save-warning"
+    );
+  }
+
   function finishTenQuestions() {
+    session.finished = true;
+    session.saveResult = saveSession();
+
     get("result-title").textContent = "10問の結果";
 
     get("score").textContent = session.correctCount === 10
       ? "10 / 10 PERFECT!"
       : `${session.correctCount} / 10`;
 
-    get("result-message").textContent =
-      `${modeTitle()}の結果です。成績保存はまだ未実装です。`;
+    showSaveStatus(session.saveResult);
 
     const reviews = get("reviews");
     reviews.replaceChildren();
@@ -220,25 +286,76 @@
     focusHeading("result-title");
   }
 
+  function readChallengeBest() {
+    if (!storage) return null;
+
+    try {
+      if (storage.getLoadError()) return null;
+
+      return storage.getState().challenge.bestCorrectStreak;
+    } catch (error) {
+      console.warn("ITQuiz: best record read failed", error);
+      return null;
+    }
+  }
+
   function finishChallenge(failedQuestion = null) {
+    session.finished = true;
+    session.saveResult = saveSession();
+
+    const saved = session.saveResult;
     const cleared = failedQuestion === null;
 
     get("result-title").textContent = cleared
-      ? "100問チャレンジ達成"
-      : "100問チャレンジ終了";
+      ? "100問連続チャレンジ達成"
+      : "100問連続チャレンジ終了";
 
     get("score").textContent = cleared
       ? "🏆 100 / 100 COMPLETE!"
-      : `連続正解 ${session.correctCount}問`;
+      : `今回の連続正解　${session.correctCount}問`;
 
-    get("result-message").textContent =
-      `回答数：${session.answers.length}問。` +
-      "自己ベストの保存と達成演出は、後の段階で追加します。";
+    showSaveStatus(saved);
+
+    const message = get("result-message");
+
+    if (cleared) {
+      addParagraph(message, "今回の連続正解　100問");
+    }
+
+    if (saved.ok) {
+      addParagraph(
+        message,
+        `自己ベスト　${saved.state.challenge.bestCorrectStreak}問`,
+        "best-record"
+      );
+
+      // 保存でき、過去最高を超えた場合だけ表示します。
+      if (saved.newChallengeRecord) {
+        addParagraph(message, "NEW RECORD!", "new-record");
+      }
+    } else {
+      const previousBest = readChallengeBest();
+
+      if (previousBest === null) {
+        addParagraph(
+          message,
+          "自己ベスト　取得できませんでした",
+          "best-record"
+        );
+      } else {
+        addParagraph(
+          message,
+          `保存済みの自己ベスト　${previousBest}問`,
+          "best-record"
+        );
+      }
+    }
 
     const reviews = get("reviews");
     reviews.replaceChildren();
 
-    // 不正解で終了した場合は、その問題だけ解説する。
+    // 不正解時は、その問題だけを表示します。
+    // 回答数は結果画面に表示しません。
     if (failedQuestion) {
       const chosen = session.answers[session.answers.length - 1];
 
@@ -254,14 +371,15 @@
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    // 結果画面への移動後など、不要な再送信を受け付けない。
-    if (!session || quiz.hidden) return;
+    if (!session || session.finished || quiz.hidden) return;
 
     const selected = form.querySelector(
       'input[name="answer"]:checked'
     );
 
     if (!selected) return;
+
+    confirmButton.disabled = true;
 
     const question = session.questions[session.index];
     const correct = selected.value === question.answer;
@@ -285,10 +403,11 @@
       } else {
         finishTenQuestions();
       }
+
       return;
     }
 
-    // 10問モードは、ここでは正誤を表示しない。
+    // 10問モードでは、回答中に正誤を表示しません。
     renderQuestion();
   });
 
@@ -311,7 +430,12 @@
   });
 
   get("quit").addEventListener("click", () => {
-    if (window.confirm("この回の回答を破棄してホームへ戻りますか？")) {
+    if (
+      window.confirm(
+        "この回をやめてホームへ戻りますか？" +
+        "途中の回答は保存されません。"
+      )
+    ) {
       goHome();
     }
   });
@@ -320,7 +444,6 @@
     button.addEventListener("click", goHome);
   });
 
-  // データを読み込めなかった場合は、開始させずに案内する。
   if (
     !data ||
     data.schemaVersion !== 1 ||
@@ -344,8 +467,11 @@
 
   pool = uniqueQuestions(data.questions);
 
-  const genres = [...new Set(pool.map((question) => question.genre))]
-    .sort((a, b) => a.localeCompare(b, "ja"));
+  const genres = [
+    ...new Set(pool.map((question) => question.genre))
+  ].sort((a, b) => a.localeCompare(b, "ja"));
+
+  genreSelect.replaceChildren();
 
   for (const genre of genres) {
     const option = document.createElement("option");
@@ -362,7 +488,7 @@
     get("start-genre").disabled = count < 10;
 
     get("genre-note").textContent = count >= 10
-      ? `${count}問から、重複なしで10問出題します。`
+      ? `${count}問から、問題IDの重複なしで10問出題します。`
       : `このジャンルは${count}問です。開始には10問必要です。`;
   }
 
@@ -376,6 +502,10 @@
     `ダミーデータ：${pool.length}問・${genres.length}ジャンル`;
 
   get("challenge-note").textContent = pool.length >= 100
-    ? "100問を重複なしで出題。不正解でその回は終了します。"
+    ? "100問を問題IDの重複なしで出題。不正解でその回は終了します。"
     : `現在${pool.length}問です。開始には100問必要です。`;
+
+  if (storage && storage.getLoadError()) {
+    showError(storage.getLoadError());
+  }
 })();
